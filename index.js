@@ -5,7 +5,7 @@ import "dotenv/config";
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
-
+const port=process.env.PORT || 3000;
 // Twilio configuration
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -89,6 +89,6 @@ app.post('/whatsapp-webhook', async (req, res) => {
 });
 
 // Start the server
-app.listen(3000, () => {
+app.listen(port, () => {
     console.log('Server running on port 3000');
 });
