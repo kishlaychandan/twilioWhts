@@ -17,13 +17,20 @@ const client = new twilio(accountSid, authToken);
 const userSessions = {};
 
 // Function to send WhatsApp message
-async function sendWhatsAppMessage(to, body) {
+async function sendWhatsAppMessage(to, body, interactive = null) {
     try {
-        const message = await client.messages.create({
+        const messageData = {
             from: 'whatsapp:+14155238886', 
             to: to, 
             body: body
-        });
+        };
+        
+        // Add interactive if provided
+        if (interactive) {
+            messageData.interactive = interactive;
+        }
+
+        const message = await client.messages.create(messageData);
         console.log('Message sent: ', message.sid);
     } catch (error) {
         console.error('Error sending message: ', error);
@@ -67,16 +74,12 @@ async function displayMenu(to) {
     };
 
     // Send the menu with buttons
-    await client.messages.create({
-        from: 'whatsapp:+14155238886', 
-        to: to,
-        type: 'interactive',
-        interactive: menu
-    });
+    await sendWhatsAppMessage(to, 'Hello! How can we assist you today?', menu);
 }
 
 // Handle incoming WhatsApp messages
 app.post('/whatsapp-webhook', async (req, res) => {
+    console.log('Incoming message data:', req.body); // Log incoming data
     const incomingMessage = req.body.Body ? req.body.Body.trim().toLowerCase() : null;
     const fromNumber = req.body.From;
     const buttonId = req.body.ButtonId; // Assuming ButtonId is sent when a button is clicked
