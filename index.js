@@ -10,20 +10,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 const port = process.env.PORT || 3000;
-
-// Twilio configuration
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = new twilio(accountSid, authToken);
 
-// In-memory user session to track the current step for each user
 const userSessions = {};
 
-// Function to send WhatsApp message
 async function sendWhatsAppMessage(to, body) {
     try {
         const message = await client.messages.create({
-            from: 'whatsapp:+14155238886', // Your Twilio WhatsApp number
+            from: 'whatsapp:+14155238886', 
             to: to,
             body: body
         });
@@ -33,7 +29,6 @@ async function sendWhatsAppMessage(to, body) {
     }
 }
 
-// Function to display the menu options
 async function displayMenu(to) {
     const menuMessage = `
         Please select your issue from the options below:
@@ -45,20 +40,16 @@ async function displayMenu(to) {
     await sendWhatsAppMessage(to, menuMessage);
 }
 
-// Handle incoming WhatsApp messages
 app.post('/whatsapp-webhook', async (req, res) => {
     const incomingMessage = req.body.Body ? req.body.Body.trim().toLowerCase() : null;
     const fromNumber = req.body.From;
-
-    // Initialize session if the user is interacting for the first time
+    
     if (!userSessions[fromNumber]) {
         userSessions[fromNumber] = { currentStep: 'initial' };
     }
 
-    // Check the user's current step in the conversation flow
     const session = userSessions[fromNumber];
 
-    // Step-by-step conversation flow
     switch (session.currentStep) {
         case 'initial':
             if (incomingMessage === 'hi') {
@@ -70,15 +61,15 @@ app.post('/whatsapp-webhook', async (req, res) => {
             break;
 
         case 'askName':
-            session.name = incomingMessage; // Save the name
+            session.name = incomingMessage;
             await sendWhatsAppMessage(fromNumber, `Thank you, ${session.name}! Could you please provide your phone number?`);
             session.currentStep = 'askPhoneNumber';
             break;
 
         case 'askPhoneNumber':
-            session.phone = incomingMessage; // Save the phone number
+            session.phone = incomingMessage;
             await displayMenu(fromNumber);
-            session.currentStep = 'menu'; // Move to the menu step
+            session.currentStep = 'menu';
             break;
 
         case 'menu':
@@ -98,14 +89,14 @@ app.post('/whatsapp-webhook', async (req, res) => {
                     break;
                 default:
                     await sendWhatsAppMessage(fromNumber, 'Invalid option. Please select a valid option (1-4).');
-                    await displayMenu(fromNumber); // Redisplay the menu
-                    return; // Exit the switch statement
+                    await displayMenu(fromNumber);
+                    return; 
             }
-            session.currentStep = 'finalResponse'; // Move to the final response step
+            session.currentStep = 'finalResponse';
             break;
 
         case 'askOrderID':
-            session.orderID = incomingMessage; // Save the order ID
+            session.orderID = incomingMessage;
             await sendWhatsAppMessage(fromNumber, 'Thank you for providing your order ID. Our team will contact you shortly.');
             session.currentStep = 'finalResponse';
             break;
@@ -117,11 +108,11 @@ app.post('/whatsapp-webhook', async (req, res) => {
 
         case 'askFinalResponse':
             if (incomingMessage === 'yes') {
-                await displayMenu(fromNumber); // Redisplay the menu
-                session.currentStep = 'menu'; // Go back to the menu
+                await displayMenu(fromNumber);
+                session.currentStep = 'menu';
             } else {
                 await sendWhatsAppMessage(fromNumber, 'Thank you for contacting us. Have a good day!');
-                delete userSessions[fromNumber]; // End the session
+                delete userSessions[fromNumber];
             }
             break;
 
@@ -133,7 +124,7 @@ app.post('/whatsapp-webhook', async (req, res) => {
     res.send('Webhook received');
 });
 
-// Start the server
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
