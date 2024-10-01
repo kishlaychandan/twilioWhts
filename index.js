@@ -152,18 +152,8 @@ async function sendWhatsAppTemplateMessage(to) {
         const message = await client.messages.create({
             from: 'whatsapp:+14155238886', // Twilio WhatsApp sandbox or your Twilio WhatsApp number
             to: to,
-            template: {
-                name: 'quickreply', // Use the template name from Twilio dashboard
-                language: {
-                    code: 'en' // Template language code
-                },
-                components: [
-                    {
-                        type: 'body',
-                        parameters: [] // If your template has dynamic parameters, add them here
-                    }
-                ]
-            }
+            contentSid: 'HX3e386ca73e928ea475d4c3e99e31b70d', // Use the Template SID you provided
+            contentVariables: JSON.stringify({}) // Add variables if your template expects them
         });
         console.log('Template message sent: ', message.sid);
     } catch (error) {
