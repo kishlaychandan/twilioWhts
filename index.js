@@ -129,6 +129,50 @@
 //     console.log(`Server running on port ${port}`);
 // });
 
+// import express from 'express';
+// import bodyParser from 'body-parser';
+// import twilio from 'twilio';
+// import dotenv from 'dotenv';
+
+// dotenv.config();
+
+// const app = express();
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.json());
+
+// const port = process.env.PORT || 3000;
+// const accountSid = process.env.TWILIO_ACCOUNT_SID;
+// const authToken = process.env.TWILIO_AUTH_TOKEN;
+// const client = new twilio(accountSid, authToken);
+
+// // Function to send WhatsApp template message
+// async function sendWhatsAppTemplateMessage(to) {
+//     try {
+//         const message = await client.messages.create({
+//             from: 'whatsapp:+14155238886', 
+//             to: to,
+//             contentSid: 'HX3e386ca73e928ea475d4c3e99e31b70d',
+//             contentVariables: JSON.stringify({}) 
+//         });
+//         console.log('Template message sent: ', message.sid);
+//     } catch (error) {
+//         console.error('Error sending template message: ', error);
+//     }
+// }
+
+// app.post('/whatsapp-webhook', async (req, res) => {
+//     const fromNumber = req.body.From;
+
+//     await sendWhatsAppTemplateMessage(fromNumber);
+
+//     res.send('Template message sent');
+// });
+
+// app.listen(port, () => {
+//     console.log(`Server running on port ${port}`);
+// });
+
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import twilio from 'twilio';
@@ -146,14 +190,14 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = new twilio(accountSid, authToken);
 
-// Function to send WhatsApp template message
+// Function to send WhatsApp List Picker Template
 async function sendWhatsAppTemplateMessage(to) {
     try {
         const message = await client.messages.create({
             from: 'whatsapp:+14155238886', // Twilio WhatsApp sandbox or your Twilio WhatsApp number
             to: to,
-            contentSid: 'HX3e386ca73e928ea475d4c3e99e31b70d', // Use the Template SID you provided
-            contentVariables: JSON.stringify({}) // Add variables if your template expects them
+            contentSid: 'HX1c3237f4cbeb878c0d42247e440fa992', // List picker Template SID
+            contentVariables: JSON.stringify({}) // Pass any required variables for the list template here
         });
         console.log('Template message sent: ', message.sid);
     } catch (error) {
@@ -161,14 +205,69 @@ async function sendWhatsAppTemplateMessage(to) {
     }
 }
 
+// Function to send a follow-up message based on the user's choice
+async function sendFollowUpMessage(to, choice) {
+    try {
+        let followUpMessage = '';
+
+        // Customize the follow-up message based on the choice made by the user
+        if (choice === 'option1') {
+            followUpMessage = 'You selected option 1. We will assist you with this soon.';
+        } else if (choice === 'option2') {
+            followUpMessage = 'You selected option 2. We will assist you with this soon.';
+        } else if (choice === 'option3') {
+            followUpMessage = 'You selected option 3. We will assist you with this soon.';
+        } else {
+            followUpMessage = 'You selected an unknown option. Please try again.';
+        }
+
+        // Send the follow-up message
+        await client.messages.create({
+            from: 'whatsapp:+14155238886', // Twilio WhatsApp number
+            to: to,
+            body: followUpMessage
+        });
+        console.log('Follow-up message sent.');
+    } catch (error) {
+        console.error('Error sending follow-up message: ', error);
+    }
+}
+
+// Function to send a thank-you message
+async function sendThankYouMessage(to) {
+    try {
+        await client.messages.create({
+            from: 'whatsapp:+14155238886', // Twilio WhatsApp number
+            to: to,
+            body: 'Thank you! We will reach out to you soon.'
+        });
+        console.log('Thank-you message sent.');
+    } catch (error) {
+        console.error('Error sending thank-you message: ', error);
+    }
+}
+
 // Webhook to handle incoming WhatsApp messages
 app.post('/whatsapp-webhook', async (req, res) => {
     const fromNumber = req.body.From;
+    const incomingMessage = req.body.Body ? req.body.Body.trim().toLowerCase() : null;
 
-    // Send the WhatsApp template message
-    await sendWhatsAppTemplateMessage(fromNumber);
-
-    res.send('Template message sent');
+    // Step 1: Send the list picker template message if it's the first interaction
+    if (incomingMessage === 'hi') {
+        await sendWhatsAppTemplateMessage(fromNumber);
+        res.send('Template message sent');
+    }
+    
+    // Step 2: Handle the user's choice (for this example, assuming the choices are "option1", "option2", and "option3")
+    else if (incomingMessage === 'option1' || incomingMessage === 'option2' || incomingMessage === 'option3') {
+        await sendFollowUpMessage(fromNumber, incomingMessage);
+        
+        // Step 3: Send a thank-you message
+        await sendThankYouMessage(fromNumber);
+        res.send('Follow-up and thank-you message sent');
+    } else {
+        res.send('No valid interaction detected.');
+    }
 });
 
 // Start the server
