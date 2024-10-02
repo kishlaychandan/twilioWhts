@@ -211,11 +211,11 @@ async function sendFollowUpMessage(to, choice) {
         let followUpMessage = '';
 
         // Customize the follow-up message based on the choice made by the user
-        if (choice === 'option1') {
+        if (choice === 'list1') {
             followUpMessage = 'You selected option 1. We will assist you with this soon.';
-        } else if (choice === 'option2') {
+        } else if (choice === 'list2') {
             followUpMessage = 'You selected option 2. We will assist you with this soon.';
-        } else if (choice === 'option3') {
+        } else if (choice === 'list3') {
             followUpMessage = 'You selected option 3. We will assist you with this soon.';
         } else {
             followUpMessage = 'You selected an unknown option. Please try again.';
@@ -259,7 +259,7 @@ app.post('/whatsapp-webhook', async (req, res) => {
     }
     
     // Step 2: Handle the user's choice (for this example, assuming the choices are "option1", "option2", and "option3")
-    else if (incomingMessage === 'option1' || incomingMessage === 'option2' || incomingMessage === 'option3') {
+    else if (incomingMessage === 'list1' || incomingMessage === 'list2' || incomingMessage === 'list3') {
         await sendFollowUpMessage(fromNumber, incomingMessage);
         
         // Step 3: Send a thank-you message
