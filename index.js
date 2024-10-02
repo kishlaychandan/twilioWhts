@@ -178,7 +178,6 @@ import bodyParser from 'body-parser';
 import twilio from 'twilio';
 import dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -190,14 +189,13 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = new twilio(accountSid, authToken);
 
-// Function to send WhatsApp List Picker Template
 async function sendWhatsAppTemplateMessage(to) {
     try {
         const message = await client.messages.create({
-            from: 'whatsapp:+14155238886', // Twilio WhatsApp sandbox or your Twilio WhatsApp number
+            from: 'whatsapp:+14155238886', 
             to: to,
             contentSid: 'HX1c3237f4cbeb878c0d42247e440fa992', // List picker Template SID
-            contentVariables: JSON.stringify({}) // Pass any required variables for the list template here
+            contentVariables: JSON.stringify({}) 
         });
         console.log('Template message sent: ', message.sid);
     } catch (error) {
@@ -205,12 +203,10 @@ async function sendWhatsAppTemplateMessage(to) {
     }
 }
 
-// Function to send a follow-up message based on the user's choice
 async function sendFollowUpMessage(to, choice) {
     try {
         let followUpMessage = '';
 
-        // Customize the follow-up message based on the choice made by the user
         if (choice === 'list1') {
             followUpMessage = 'You selected option 1. We will assist you with this soon.';
         } else if (choice === 'list2') {
@@ -221,9 +217,8 @@ async function sendFollowUpMessage(to, choice) {
             followUpMessage = 'You selected an unknown option. Please try again.';
         }
 
-        // Send the follow-up message
         await client.messages.create({
-            from: 'whatsapp:+14155238886', // Twilio WhatsApp number
+            from: 'whatsapp:+14155238886', 
             to: to,
             body: followUpMessage
         });
@@ -233,11 +228,10 @@ async function sendFollowUpMessage(to, choice) {
     }
 }
 
-// Function to send a thank-you message
 async function sendThankYouMessage(to) {
     try {
         await client.messages.create({
-            from: 'whatsapp:+14155238886', // Twilio WhatsApp number
+            from: 'whatsapp:+14155238886', 
             to: to,
             body: 'Thank you! We will reach out to you soon.'
         });
@@ -247,7 +241,6 @@ async function sendThankYouMessage(to) {
     }
 }
 
-// Webhook to handle incoming WhatsApp messages
 app.post('/whatsapp-webhook', async (req, res) => {
     const fromNumber = req.body.From;
     const incomingMessage = req.body.Body ? req.body.Body.trim().toLowerCase() : null;
